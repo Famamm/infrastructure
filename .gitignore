@@ -1,0 +1,7 @@
+.env
+.env.prod
+.env.dev
+
+# Docker image backups (too large for GitHub)
+*.tar
+*.tar.gz

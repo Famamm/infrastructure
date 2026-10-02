@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgis/postgis:latest
+    container_name: fleetops_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fleetops_admin
+      POSTGRES_PASSWORD: fleetops
+      POSTGRES_DB: fleetops_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fleetops_admin -d fleetops_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fleetops_network
+
+  api:
+    image: notrez1/fleetops-api:latest
+    container_name: fleetops_api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=fleetops_db;Username=fleetops_admin;Password=fleetops"
+    ports:
+      - "5144:5144"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fleetops_network
+
+volumes:
+  postgres_data:
+
+networks:
+  fleetops_network:
+    driver: bridge
